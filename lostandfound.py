@@ -50,7 +50,23 @@ def main():
                         break
 
                 else:
-                    print("Silakan masukkan email kembali.")
+                    print("\nApa yang ingin anda lakukan?")
+                    print("1. Masukkan email ulang")
+                    print("2. Sign Up")
+                    print("3. Kembali ke menu utama")
+
+                    pilihan_email = input("Pilih menu: ")
+
+                    if pilihan_email == "1":
+                        continue   # minta ulang email
+                    elif pilihan_email == "2":
+                        if daftar_user(database_user):
+                            simpan_data("users.csv", database_user)
+                        break      # setelah daftar, balik ke menu utama
+                    elif pilihan_email == "3":
+                        break      # balik ke menu utama
+                    else:
+                        print("Pilihan tidak valid! Masukkan angka 1-3.")
 
             if login_berhasil:
                 print("===================================================")
@@ -68,16 +84,24 @@ def main():
                     pilihan_menu = input("Pilih menu: ")
                     
                     if pilihan_menu == "1":
-                        print("laporkan")
+                        print("===================================================")
+                        print("Laporan Barang Temuan")
+                        print("===================================================")
                     
                     elif pilihan_menu == "2":
-                        print("laporkan")
+                        print("===================================================")
+                        print("Laporan Barang Hilang")
+                        print("===================================================")
                     
                     elif pilihan_menu == "3":
-                        print("berikut status barang anda")
+                        print("===================================================")
+                        print("Status Barang Hilang")
+                        print("===================================================")
                     
                     elif pilihan_menu == "4":
-                        print("cetak leaderboard")
+                        print("===================================================")
+                        print("Leaderboard Poin")
+                        print("===================================================")
                     
                     elif pilihan_menu == "5":
                         break
@@ -206,5 +230,9 @@ def cek_password(database, indeks):
   print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
   return False
 
+def form_temuan(nama, barang):
+  # Meminta input password lalu mencocokkannya dengan database
+  # KAMUS LOKAL
+  # database : list of dict; indeks, kesempatan : int; password : str
 
 main()
