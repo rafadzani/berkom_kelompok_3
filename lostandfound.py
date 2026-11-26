@@ -14,9 +14,10 @@ def main():
     # email, nama, id_user, pilihan, pilihan_menu : str
     # login_berhasil : bool
 
-    print("===================================================")
-    print("       LOST AND FOUND ITB JATINANGOR")
-    print("===================================================")
+    print("=======================================================")
+    print("            LOST AND FOUND ITB JATINANGOR")
+    print("=======================================================")
+    print("Selamat datang di program lost and found ITB Jatinangor")
 
     # Membaca seluruh database CSV saat program dimulai
     database_user = ambil_data("users.csv")
@@ -26,16 +27,15 @@ def main():
 
     while True:
         print("\n================ MENU UTAMA =================")
-        print("1. Sign In")
-        print("2. Sign Up")
-        print("3. Keluar")
+        print("1. Sign In dengan akun yang sudah ada")
+        print("2. Sign Up jika belum memiliki akun")
+        print("3. Keluar dari program ini")
 
         pilihan = input("Pilih menu: ")
 
         if pilihan == "1":
             # Proses Sign In
             login_berhasil = False
-
             while True:
                 data_utama_user = cek_user(database_user)
 
@@ -73,18 +73,32 @@ def main():
                     
                     if pilihan_menu == "1":
                         lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user, database_kategori)
+                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
+                        if lanjut == "n":
+                            break
                     
                     elif pilihan_menu == "2":
                         if lapor_barang_hilang(database_hilang, id_user, database_kategori):
                             simpan_data("baranghilang.csv", database_hilang)
+                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
+                        if lanjut == "n":
+                            break
                     
                     elif pilihan_menu == "3":
-                        print("berikut status barang anda")
+                        cek_status(database_hilang, database_temuan, id_user)
+
+                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
+                        if lanjut == "n":
+                            break
                     
                     elif pilihan_menu == "4":
                         cetak_leaderboard(database_user)
-                    
+                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
+                        if lanjut == "n":
+                            break
+
                     elif pilihan_menu == "5":
+                        print("Keluar dari menu ini ...")
                         break
                     
                     else:
@@ -410,6 +424,36 @@ def pilih_kategori(database_kategori):
     kategori = database_kategori[int(pilihan) - 1]["kategori"]
 
     return kategori
+
+def cek_status(database_hilang, database_temuan, id_user):
+    print("\n============= STATUS BARANG ANDA =============")
+
+    print("\n----Laporan Barang Hilang ----")
+    ada_hilang = False
+    for i in range(len(database_hilang)):
+        item = database_hilang[i]
+        if item["id_pelapor"] == id_user and item["id_barang"] != "":
+            ada_hilang = True
+            print(f"[{item['id_barang']}] {item['nama_barang']} ({item['kategori']}, {item['warna']}) | "
+                  f"Lokasi: {item['lokasi']} | Waktu: {item['waktu']} | "
+                  f"Bounty: {item['bounty']} poin | Status: {item['status']}")
+
+    if not ada_hilang:
+        print("Belum ada laporang barang hilang")
+    
+    print("\n----Laporan Barang Temuan ----")
+    ada_temuan = False
+    for i in range(len(database_temuan)):
+        item = database_temuan[i]
+        if item["id_pelapor"] == id_user and item["id_barang"] != "":
+            ada_temuan = True
+            print(f"[{item['id_barang']}] {item['nama_barang']} ({item['kategori']}, {item['warna']}) | "
+                  f"Lokasi: {item['lokasi']} | Waktu: {item['waktu']} | Status: {item['status']}")
+        
+    if not ada_temuan:
+        print("Belum ada laporang barang temuan")
+            
+
 
 def cetak_leaderboard(database_user):
     print("\n============= LEADERBOARD BOUNTY =============")
