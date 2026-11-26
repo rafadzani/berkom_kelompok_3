@@ -20,6 +20,7 @@ def main():
 
     # Membaca database pengguna saat program dimulai
     database_user = ambil_data("users.csv")
+    database_hilang = ambil_data("baranghilang.csv")
 
     while True:
         print("\n================ MENU UTAMA =================")
@@ -40,6 +41,7 @@ def main():
                     indeks_user = data_utama_user[1]
                     email = data_utama_user[2]
                     nama = data_utama_user[3]
+                    id_user = database_user[indeks_user]["user_id"]
 
                     if cek_password(database_user, indeks_user):
                         print("\nLogin berhasil!")
@@ -71,7 +73,8 @@ def main():
                         print("laporkan")
                     
                     elif pilihan_menu == "2":
-                        print("laporkan")
+                        if lapor_barang_hilang(database_hilang, id_user):
+                            simpan_data("baranghilang.csv", database_hilang)
                     
                     elif pilihan_menu == "3":
                         print("berikut status barang anda")
@@ -206,5 +209,78 @@ def cek_password(database, indeks):
   print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
   return False
 
+def lapor_barang_hilang(database_hilang, id_pelapor):
+    # Menambahkan laporan barang hilang baru ke dalam database_hilang
+    # KAMUS LOKAL
+    # database_hilang : list of dict
+    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, bounty : str
+    # nomor_baru, indeks_kosong : int
+    # laporan_baru : dict
+
+    print("\n================ LAPOR BARANG HILANG ================")
+
+    nama_barang = input("Masukkan nama barang: ").strip()
+    while nama_barang == "":
+        nama_barang = input("Nama barang tidak boleh kosong! Masukkan nama barang: ").strip()
+
+    kategori = input("Masukkan kategori (Elektronik/Alat Tulis/Botol Minum/Kartu/Lainnya): ").strip()
+    while kategori == "":
+        kategori = input("Kategori tidak boleh kosong! Masukkan kategori: ").strip()
+
+    warna = input("Masukkan warna barang: ").strip()
+    while warna == "":
+        warna = input("Warna tidak boleh kosong! Masukkan warna: ").strip()
+
+    lokasi = input("Masukkan perkiraan lokasi hilang: ").strip()
+    while lokasi == "":
+        lokasi = input("Lokasi tidak boleh kosong! Masukkan lokasi: ").strip()
+
+    waktu = input("Masukkan perkiraan waktu hilang (kosongkan untuk waktu sekarang): ").strip()
+    if waktu == "":
+        waktu = datetime.now().strftime("%d-%m-%Y %H:%M")
+
+    catatan = input("Masukkan catatan/ciri khusus barang: ").strip()
+    if catatan == "":
+        catatan = "-"
+
+    bounty = input("Masukkan poin bounty untuk penemu (angka, contoh: 10): ").strip()
+    while not bounty.isdigit():
+        bounty = input("Bounty harus berupa angka! Masukkan poin bounty: ").strip()
+
+    # Mencari slot kosong pada CSV (jika file sudah disiapkan nomornya seperti users.csv)
+    indeks_kosong = -1
+    for i in range(len(database_hilang)):
+        if database_hilang[i]["id_barang"] == "":
+            indeks_kosong = i
+            break
+
+    if indeks_kosong != -1:
+        nomor_baru = indeks_kosong + 1
+    else:
+        nomor_baru = len(database_hilang) + 1
+
+    laporan_baru = {
+        "nomor": str(nomor_baru),
+        "id_barang": "H" + str(nomor_baru).zfill(3),
+        "id_pelapor": id_pelapor,
+        "nama_barang": nama_barang,
+        "kategori": kategori,
+        "warna": warna,
+        "lokasi": lokasi,
+        "waktu": waktu,
+        "catatan": catatan,
+        "bounty": bounty,
+        "status": "Belum Ditemukan"
+    }
+
+    if indeks_kosong != -1:
+        database_hilang[indeks_kosong] = laporan_baru
+    else:
+        database_hilang.append(laporan_baru)
+
+    print("\nLaporan barang hilang berhasil ditambahkan!")
+    print(f"ID Barang : {laporan_baru['id_barang']}")
+    print(f"Status    : {laporan_baru['status']}")
+    return True
 
 main()
