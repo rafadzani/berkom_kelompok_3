@@ -22,6 +22,7 @@ def main():
     database_user = ambil_data("users.csv")
     database_hilang = ambil_data("baranghilang.csv")
     database_temuan = ambil_data("barangtemuan.csv")
+    database_kategori = ambil_data("kategori.csv")
 
     while True:
         print("\n================ MENU UTAMA =================")
@@ -71,10 +72,10 @@ def main():
                     pilihan_menu = input("Pilih menu: ")
                     
                     if pilihan_menu == "1":
-                        lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user)
+                        lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user, database_kategori)
                     
                     elif pilihan_menu == "2":
-                        if lapor_barang_hilang(database_hilang, id_user):
+                        if lapor_barang_hilang(database_hilang, id_user, database_kategori):
                             simpan_data("baranghilang.csv", database_hilang)
                     
                     elif pilihan_menu == "3":
@@ -210,7 +211,7 @@ def cek_password(database, indeks):
   print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
   return False
 
-def lapor_barang_hilang(database_hilang, id_pelapor):
+def lapor_barang_hilang(database_hilang, id_pelapor, database_kategori):
     # Menambahkan laporan barang hilang baru ke dalam slot kosong database_hilang
     # KAMUS LOKAL
     # database_hilang : list of dict
@@ -227,9 +228,7 @@ def lapor_barang_hilang(database_hilang, id_pelapor):
             while nama_barang == "":
                 nama_barang = input("Nama barang tidak boleh kosong! Masukkan nama barang: ").strip()
 
-            kategori = input("Masukkan kategori (Elektronik/Alat Tulis/Botol Minum/Kartu/Lainnya): ").strip()
-            while kategori == "":
-                kategori = input("Kategori tidak boleh kosong! Masukkan kategori: ").strip()
+            kategori = pilih_kategori(database_kategori)
 
             warna = input("Masukkan warna barang: ").strip()
             while warna == "":
@@ -274,7 +273,7 @@ def lapor_barang_hilang(database_hilang, id_pelapor):
     print("Database barang hilang sudah penuh!")
     return False
 
-def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user):
+def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user, database_kategori):
     # Melaporkan barang temuan, mencocokkan dengan barang hilang, dan memberi poin bounty
     # KAMUS LOKAL
     # database_temuan, database_hilang, database_user : list of dict
@@ -291,9 +290,7 @@ def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_
     while nama_barang == "":
         nama_barang = input("Nama barang tidak boleh kosong! Masukkan nama barang: ").strip()
 
-    kategori = input("Masukkan kategori (Elektronik/Alat Tulis/Botol Minum/Kartu/Lainnya): ").strip()
-    while kategori == "":
-        kategori = input("Kategori tidak boleh kosong! Masukkan kategori: ").strip()
+    kategori = pilih_kategori(database_kategori)
 
     warna = input("Masukkan warna barang: ").strip()
     while warna == "":
@@ -396,5 +393,22 @@ def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_
 
     print("Database barang temuan sudah penuh!")
     return False
+
+def pilih_kategori(database_kategori):
+    # Memilih kategori barang berdasarkan kategori.csv
+
+    print("\nPilih kategori barang:")
+
+    for i in range(len(database_kategori)):
+        print(f"{i + 1}. {database_kategori[i]['kategori']}")
+
+    pilihan = input("Masukkan nomor kategori: ")
+
+    while not pilihan.isdigit() or int(pilihan) < 1 or int(pilihan) > len(database_kategori):
+        pilihan = input("Pilihan tidak valid! Masukkan nomor kategori: ")
+
+    kategori = database_kategori[int(pilihan) - 1]["kategori"]
+
+    return kategori
 
 main()
