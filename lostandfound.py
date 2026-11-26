@@ -82,7 +82,7 @@ def main():
                         print("berikut status barang anda")
                     
                     elif pilihan_menu == "4":
-                        print("cetak leaderboard")
+                        cetak_leaderboard(database_user)
                     
                     elif pilihan_menu == "5":
                         break
@@ -410,5 +410,41 @@ def pilih_kategori(database_kategori):
     kategori = database_kategori[int(pilihan) - 1]["kategori"]
 
     return kategori
+
+def cetak_leaderboard(database_user):
+    print("\n============= LEADERBOARD BOUNTY =============")
+    indeks_aktif = [-1 for i in range(len(database_user))]
+    jumlah_user = 0
+
+    for i in range(len(database_user)):
+        if database_user[i]["user_id"] != "":
+            indeks_aktif[jumlah_user] = i
+            jumlah_user += 1
+        
+    if jumlah_user == 0:
+        print("Belum ada pengguna terdaftar.")
+        return
+
+    # Sortir dari poin tertinggi ke terendah
+    for i in range(jumlah_user - 1):
+        indeks_max = i
+        for j in range(i + 1, jumlah_user):
+            poin_j = int(database_user[indeks_aktif[j]]["poin"])
+            poin_max = int(database_user[indeks_aktif[indeks_max]]["poin"])
+            if poin_j > poin_max:
+                indeks_max = j
+
+        if indeks_max != i:
+            temp = indeks_aktif[i]
+            indeks_aktif[i] = indeks_aktif[indeks_max]
+            indeks_aktif[indeks_max] = temp
+
+    print("Peringkat / Nama / Poin")
+    print("=" * 40)
+    for i in range(jumlah_user):
+        user = database_user[indeks_aktif[i]]
+        print(f"{i + 1} / {user["nama"]} / {user["poin"]}")
+
+
 
 main()
