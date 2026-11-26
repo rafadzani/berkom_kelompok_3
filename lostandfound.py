@@ -8,18 +8,21 @@ def main():
     # Menjalankan tampilan utama Lost and Found
 
     # KAMUS LOKAL
-    # database_user : list of dict
+    # database_user, database_hilang, database_temuan : list of dict
     # data_utama_user : list atau bool
     # indeks_user : int
-    # email, nama, pilihan : str
+    # email, nama, id_user, pilihan, pilihan_menu : str
     # login_berhasil : bool
 
     print("===================================================")
     print("       LOST AND FOUND ITB JATINANGOR")
     print("===================================================")
 
-    # Membaca database pengguna saat program dimulai
+    # Membaca seluruh database CSV saat program dimulai
     database_user = ambil_data("users.csv")
+    database_hilang = ambil_data("baranghilang.csv")
+    database_temuan = ambil_data("barangtemuan.csv")
+    database_kategori = ambil_data("kategori.csv")
 
     while True:
         print("\n================ MENU UTAMA =================")
@@ -40,6 +43,7 @@ def main():
                     indeks_user = data_utama_user[1]
                     email = data_utama_user[2]
                     nama = data_utama_user[3]
+                    id_user = database_user[indeks_user]["user_id"]
 
                     if cek_password(database_user, indeks_user):
                         print("\nLogin berhasil!")
@@ -74,7 +78,7 @@ def main():
                 print("===================================================")
 
                 while True:
-                    print(f"Apa yang ingin anda lakukan, {nama} :")
+                    print(f"\nApa yang ingin anda lakukan, {nama} :")
                     print("1. Melaporkan barang temuan")
                     print("2. Melaporkan kehilangan barang")
                     print("3. Cek status barang")
@@ -84,14 +88,12 @@ def main():
                     pilihan_menu = input("Pilih menu: ")
                     
                     if pilihan_menu == "1":
-                        print("===================================================")
-                        print("Laporan Barang Temuan")
-                        print("===================================================")
+
+
                     
                     elif pilihan_menu == "2":
-                        print("===================================================")
-                        print("Laporan Barang Hilang")
-                        print("===================================================")
+
+
                     
                     elif pilihan_menu == "3":
                         print("===================================================")
@@ -99,9 +101,8 @@ def main():
                         print("===================================================")
                     
                     elif pilihan_menu == "4":
-                        print("===================================================")
-                        print("Leaderboard Poin")
-                        print("===================================================")
+
+
                     
                     elif pilihan_menu == "5":
                         break
@@ -112,7 +113,7 @@ def main():
         elif pilihan == "2":
             # Proses Sign Up
             if daftar_user(database_user):
-               simpan_data("users.csv", database_user)
+                simpan_data("users.csv", database_user)
 
         elif pilihan == "3":
             print("\nTerima kasih telah menggunakan Lost and Found ITB!")
@@ -230,9 +231,5 @@ def cek_password(database, indeks):
   print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
   return False
 
-def form_temuan(nama, barang):
-  # Meminta input password lalu mencocokkannya dengan database
-  # KAMUS LOKAL
-  # database : list of dict; indeks, kesempatan : int; password : str
 
-    main()
+
