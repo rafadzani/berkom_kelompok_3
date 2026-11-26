@@ -235,4 +235,4 @@ def form_temuan(nama, barang):
   # KAMUS LOKAL
   # database : list of dict; indeks, kesempatan : int; password : str
 
-main()
+    main()
