@@ -1,5 +1,5 @@
-﻿nomor,id_barang,nama_barang,jenis,warna,tempat,catatan,id_penemu
-1,H001,Botol minum,botol,hitam,GKU1 sekitar jam 10, botol punya stiker umamusume disamping,U002
+﻿nomor,id_barang,id_penemu,nama_barang,kategori,warna,lokasi,waktu,catatan,status
+1,H001,U002,Botol minum,Botol,Hitam,GKU 1,Sekitar jam 10,Botol punya stiker umamusume disamping,Hilang
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,
