@@ -54,7 +54,23 @@ def main():
                         break
 
                 else:
-                    print("Silakan masukkan email kembali.")
+                    print("\nApa yang ingin anda lakukan?")
+                    print("1. Masukkan email ulang")
+                    print("2. Sign Up")
+                    print("3. Kembali ke menu utama")
+
+                    pilihan_email = input("Pilih menu: ")
+
+                    if pilihan_email == "1":
+                        continue   # minta ulang email
+                    elif pilihan_email == "2":
+                        if daftar_user(database_user):
+                            simpan_data("users.csv", database_user)
+                        break      # setelah daftar, balik ke menu utama
+                    elif pilihan_email == "3":
+                        break      # balik ke menu utama
+                    else:
+                        print("Pilihan tidak valid! Masukkan angka 1-3.")
 
             if login_berhasil:
                 print("===================================================")
