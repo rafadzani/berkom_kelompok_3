@@ -8,10 +8,10 @@ def main():
     # Menjalankan tampilan utama Lost and Found
 
     # KAMUS LOKAL
-    # database_user, database_hilang, database_temuan : list of dict
-    # data_utama_user : list atau bool
+    # database_user, database_hilang, database_temuan, database_kategori : list of dict
+    # data_utama_user : list atau None
     # indeks_user : int
-    # email, nama, id_user, pilihan, pilihan_menu : str
+    # nama, id_user, pilihan, pilihan_email, pilihan_menu : str
     # login_berhasil : bool
 
     print("=======================================================")
@@ -24,6 +24,13 @@ def main():
     database_hilang = ambil_data("baranghilang.csv")
     database_temuan = ambil_data("barangtemuan.csv")
     database_kategori = ambil_data("kategori.csv")
+
+    # Program tidak bisa jalan kalau salah satu file hilang atau kosong
+    if (len(database_user) == 0 or len(database_hilang) == 0 or len(database_temuan) == 0 or len(database_kategori) == 0):
+        print("\nProgram tidak dapat dijalankan!")
+        print("Pastikan users.csv, baranghilang.csv, barangtemuan.csv, dan kategori.csv")
+        print("ada di folder yang sama dan berisi data awal.")
+        return
 
     while True:
         print("\n================ MENU UTAMA =================")
@@ -39,13 +46,12 @@ def main():
             while True:
                 data_utama_user = cek_user(database_user)
 
-                if data_utama_user != False:
+                if data_utama_user is not None:
                     indeks_user = data_utama_user[1]
-                    email = data_utama_user[2]
                     nama = data_utama_user[3]
-                    id_user = database_user[indeks_user]["user_id"]
 
                     if cek_password(database_user, indeks_user):
+                        id_user = database_user[indeks_user]["user_id"]
                         print("\nLogin berhasil!")
                         print("Selamat datang,", nama)
                         login_berhasil = True
@@ -84,41 +90,35 @@ def main():
                     print("3. Cek status barang")
                     print("4. Cek Leaderboard")
                     print("5. Keluar dari menu ini")
-                    
+
                     pilihan_menu = input("Pilih menu: ")
-                    
+
                     if pilihan_menu == "1":
                         lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user, database_kategori)
-                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
-                        if lanjut == "n":
+                        if not tanya_lanjut():
                             break
-                    
+
                     elif pilihan_menu == "2":
-                        if lapor_barang_hilang(database_hilang, id_user, database_kategori):
-                            simpan_data("baranghilang.csv", database_hilang)
-                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
-                        if lanjut == "n":
+                        lapor_barang_hilang(database_hilang, database_temuan, database_user, indeks_user, database_kategori)
+                        if not tanya_lanjut():
                             break
-                    
+
                     elif pilihan_menu == "3":
                         cek_status(database_hilang, database_temuan, id_user)
-
-                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
-                        if lanjut == "n":
+                        if not tanya_lanjut():
                             break
-                    
+
                     elif pilihan_menu == "4":
                         cetak_leaderboard(database_user)
-                        lanjut = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ")
-                        if lanjut == "n":
+                        if not tanya_lanjut():
                             break
 
                     elif pilihan_menu == "5":
                         print("Keluar dari menu ini ...")
                         break
-                    
+
                     else:
-                        print("pilihan tidak valid")
+                        print("Pilihan tidak valid! Masukkan angka 1-5.")
 
         elif pilihan == "2":
             # Proses Sign Up
@@ -132,27 +132,47 @@ def main():
         else:
             print("Pilihan tidak valid! Masukkan angka 1-3.")
 
-#subprogram
+# SUBPROGRAM
 def ambil_data(filename):
-  # Membaca file CSV dan mengambil datanya
-  # KAMUS LOKAL
-  # filename : str; pembaca : DictReader
-  with open(filename, mode="r", encoding="utf-8-sig") as file:
-    pembaca = csv.DictReader(file)
-    return [row for row in pembaca]
+    # Membaca file CSV dan mengambil datanya
+    # Jika file tidak ditemukan, mengembalikan list kosong
+    # KAMUS LOKAL
+    # filename : str
+    # file : file object; pembaca : DictReader
+    try:
+        with open(filename, mode="r", encoding="utf-8-sig") as file:
+            pembaca = csv.DictReader(file)
+            return [row for row in pembaca]
+    except FileNotFoundError:
+        print(f"File {filename} tidak ditemukan!")
+        return []
+
+def tanya_lanjut():
+    # Menanyakan apakah user ingin melakukan hal lain (valid hanya y atau n)
+    # Mengembalikan True jika user menjawab y, False jika n
+    # KAMUS LOKAL
+    # jawaban : str
+    jawaban = input("Apakah ada yang ingin anda lakukan lagi (y/n) ? : ").strip().lower()
+    while jawaban != "y" and jawaban != "n":
+        jawaban = input("Pilihan tidak valid! Masukkan y atau n: ").strip().lower()
+    return jawaban == "y"
 
 def daftar_user(database):
     # Mendaftarkan pengguna baru ke dalam database
     # KAMUS LOKAL
-    # database : list of dict; nama, email, password, no_hp : str; sudah_ada : bool; i : int
+    # database : list of dict
+    # nama, email, password, no_hp : str
+    # sudah_ada : bool
+    # i : int
+    # data : dict
 
     # Mencari slot kosong dalam database
     for i in range(len(database)):
         if database[i]["user_id"] == "":
 
-            nama = input("Masukkan nama lengkap: ")
+            nama = input("Masukkan nama lengkap: ").strip()
             while nama == "":
-                nama = input("Nama tidak boleh kosong! Masukkan nama: ")
+                nama = input("Nama tidak boleh kosong! Masukkan nama: ").strip()
 
             # Memeriksa email agar tidak terdaftar dua kali
             while True:
@@ -177,9 +197,9 @@ def daftar_user(database):
             while password == "":
                 password = input("Password tidak boleh kosong! Masukkan password: ")
 
-            no_hp = input("Masukkan nomor handphone: ")
+            no_hp = input("Masukkan nomor handphone: ").strip()
             while no_hp == "":
-                no_hp = input("Nomor handphone tidak boleh kosong! Masukkan nomor handphone: ")
+                no_hp = input("Nomor handphone tidak boleh kosong! Masukkan nomor handphone: ").strip()
 
             # Mengisi slot kosong dengan data pengguna baru
             database[i] = {
@@ -202,9 +222,11 @@ def daftar_user(database):
 
 def simpan_data(filename, database):
     # Menyimpan perubahan data ke dalam file CSV
-
+    # Mengembalikan True jika berhasil, False jika database kosong
     # KAMUS LOKAL
-    # filename : str; database : list of dict; penulis : DictWriter
+    # filename : str
+    # database : list of dict
+    # file : file object; penulis : DictWriter
 
     if len(database) == 0:
         print("Database kosong, tidak ada data yang disimpan!")
@@ -218,39 +240,137 @@ def simpan_data(filename, database):
     return True
 
 def cek_user(database):
-  # Meminta input username lalu mencocokkannya dengan database
-  # KAMUS LOKAL
-  # 
-  email = input("Masukkan email anda: ")
-  for i in range(len(database)):
-    if database[i]["email"] == email and email != "":
-      nama_user = database[i]["nama"]
-      return [True, i, email, nama_user]
-  print("Email tidak terdaftar!")
-  return False
+    # Meminta input email lalu mencocokkannya dengan database (tidak case-sensitive)
+    # Mengembalikan [True, indeks, email, nama] jika ketemu, None jika tidak
+    # KAMUS LOKAL
+    # database : list of dict
+    # email : str
+    # i : int
+    email = input("Masukkan email anda: ").strip()
+    for i in range(len(database)):
+        if email != "" and database[i]["email"].lower() == email.lower():
+            return [True, i, database[i]["email"], database[i]["nama"]]
+    print("Email tidak terdaftar!")
+    return None
 
 def cek_password(database, indeks):
-  # Meminta input password lalu mencocokkannya dengan database
-  # KAMUS LOKAL
-  # database : list of dict; indeks, kesempatan : int; password : str
-  for kesempatan in range(3):   # User diberi 3 kali percobaan/kesempatan
-    password = input("Masukkan password: ")
-    if password == database[indeks]["password"]:
-      return True
-    print("Password salah!")
-  print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
-  return False
-
-def lapor_barang_hilang(database_hilang, id_pelapor, database_kategori):
-    # Menambahkan laporan barang hilang baru ke dalam slot kosong database_hilang
+    # Meminta input password lalu mencocokkannya dengan database
     # KAMUS LOKAL
-    # database_hilang : list of dict
-    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, bounty : str
+    # database : list of dict
+    # indeks, kesempatan : int
+    # password : str
+    for kesempatan in range(3):   # User diberi 3 kali percobaan/kesempatan
+        password = input("Masukkan password: ")
+        if password == database[indeks]["password"]:
+            return True
+        print("Password salah!")
+    print("Anda sudah salah 3 kali!\nSilahkan login ulang\nApabila Lupa, Hubungi admin untuk mengganti password")
+    return False
+
+def cari_kandidat(nama_barang, kategori, warna, database, status_dicari, id_pengecualian):
+    # Mencari indeks barang di database yang mirip dengan barang yang baru dilaporkan
+    # id_pengecualian = id pelapor sendiri, agar tidak mencocokkan barang miliknya sendiri
+    # Mengembalikan (indeks_kandidat, jumlah)
+    # KAMUS LOKAL
+    # nama_barang, kategori, warna, status_dicari, id_pengecualian : str
+    # database : list of dict
+    # indeks_kandidat : list of int
+    # jumlah, i : int
+    # item : dict
+    # cocok_nama, cocok_kategori, cocok_warna : bool
+
+    indeks_kandidat = [-1] * len(database)
+    jumlah = 0
+
+    for i in range(len(database)):
+        item = database[i]
+        if (item["id_barang"] != ""
+                and item["status"] == status_dicari
+                and item["id_pelapor"] != id_pengecualian):
+
+            cocok_nama = (nama_barang.lower() in item["nama_barang"].lower()) or \
+                         (item["nama_barang"].lower() in nama_barang.lower())
+            cocok_kategori = kategori.lower() == item["kategori"].lower()
+            cocok_warna = warna.lower() == item["warna"].lower()
+
+            # Kategori harus sama, lalu nama ATAU warna harus cocok
+            if cocok_kategori and (cocok_nama or cocok_warna):
+                indeks_kandidat[jumlah] = i
+                jumlah += 1
+
+    return indeks_kandidat, jumlah
+
+def cari_kontak(database_user, user_id):
+    # Mengembalikan data user (dict) berdasarkan user_id
+    # Jika tidak ditemukan, mengembalikan dict cadangan
+    # KAMUS LOKAL
+    # database_user : list of dict
+    # user_id : str
+    # user : dict
+    for user in database_user:
+        if user["user_id"] == user_id:
+            return user
+    return {"nama": "Tidak diketahui", "no_hp": "-", "email": "-", "poin": "0"}
+
+def tambah_barang_temuan(database_temuan, id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, status):
+    # Mengisi slot kosong pertama di database_temuan dengan laporan baru
+    # Mengembalikan indeks slot yang diisi, atau -1 jika database penuh
+    # KAMUS LOKAL
+    # database_temuan : list of dict
+    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, status : str
     # i : int
+    for i in range(len(database_temuan)):
+        if database_temuan[i]["id_barang"] == "":
+            database_temuan[i] = {
+                "nomor": str(i + 1),
+                "id_barang": "T" + str(i + 1).zfill(3),
+                "id_pelapor": id_pelapor,
+                "nama_barang": nama_barang,
+                "kategori": kategori,
+                "warna": warna,
+                "lokasi": lokasi,
+                "waktu": waktu,
+                "catatan": catatan,
+                "status": status
+            }
+            return i
+    return -1
+
+def pilih_kategori(database_kategori):
+    # Memilih kategori barang berdasarkan kategori.csv
+    # Mengembalikan nama kategori yang dipilih
+    # KAMUS LOKAL
+    # database_kategori : list of dict
+    # i : int
+    # pilihan, kategori : str
+
+    print("\nPilih kategori barang:")
+
+    for i in range(len(database_kategori)):
+        print(f"{i + 1}. {database_kategori[i]['kategori']}")
+
+    pilihan = input("Masukkan nomor kategori: ").strip()
+
+    while not pilihan.isdigit() or int(pilihan) < 1 or int(pilihan) > len(database_kategori):
+        pilihan = input("Pilihan tidak valid! Masukkan nomor kategori: ").strip()
+
+    kategori = database_kategori[int(pilihan) - 1]["kategori"]
+
+    return kategori
+
+def lapor_barang_hilang(database_hilang, database_temuan, database_user, indeks_user, database_kategori):
+    # Menambahkan laporan barang hilang, lalu mengecek apakah sudah ada barang temuan yang mirip
+    # KAMUS LOKAL
+    # database_hilang, database_temuan, database_user, database_kategori : list of dict
+    # indeks_kandidat : list of int
+    # indeks_user, i, k, jumlah_kandidat, idx_temuan : int
+    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, bounty : str
+    # konfirmasi, pilihan : str
+    # barang_temuan, penemu, t : dict
 
     print("\n================ LAPOR BARANG HILANG ================")
+    id_pelapor = database_user[indeks_user]["user_id"]
 
-    # Mencari slot kosong dalam database_hilang
     for i in range(len(database_hilang)):
         if database_hilang[i]["id_barang"] == "":
 
@@ -280,7 +400,6 @@ def lapor_barang_hilang(database_hilang, id_pelapor, database_kategori):
             while not bounty.isdigit():
                 bounty = input("Bounty harus berupa angka! Masukkan poin bounty: ").strip()
 
-            # Mengisi slot kosong dengan laporan baru
             database_hilang[i] = {
                 "nomor": str(i + 1),
                 "id_barang": "H" + str(i + 1).zfill(3),
@@ -298,6 +417,46 @@ def lapor_barang_hilang(database_hilang, id_pelapor, database_kategori):
             print("\nLaporan barang hilang berhasil ditambahkan!")
             print(f"ID Barang : {database_hilang[i]['id_barang']}")
             print(f"Status    : {database_hilang[i]['status']}")
+
+            # Match balik ke database barang temuan
+            indeks_kandidat, jumlah_kandidat = cari_kandidat(nama_barang, kategori, warna, database_temuan, "Belum Diklaim", id_pelapor)
+
+            if jumlah_kandidat > 0:
+                print("\n[!] Ada barang temuan yang mirip dengan barang Anda:")
+                for k in range(jumlah_kandidat):
+                    t = database_temuan[indeks_kandidat[k]]
+                    print(f"{k + 1}. [{t['id_barang']}] {t['nama_barang']} | "
+                          f"Warna: {t['warna']} | Lokasi ditemukan: {t['lokasi']} | "
+                          f"Ciri: {t['catatan']}")
+
+                konfirmasi = input("\nApakah salah satunya adalah barang Anda? (y/n): ").strip().lower()
+                if konfirmasi == "y":
+                    pilihan = input("Masukkan nomor urut barang yang cocok: ").strip()
+                    while not pilihan.isdigit() or int(pilihan) < 1 or int(pilihan) > jumlah_kandidat:
+                        pilihan = input("Nomor tidak valid! Masukkan nomor urut yang sesuai: ").strip()
+
+                    idx_temuan = indeks_kandidat[int(pilihan) - 1]
+                    barang_temuan = database_temuan[idx_temuan]
+
+                    # Update status kedua barang
+                    barang_temuan["status"] = "Sudah Diklaim"
+                    database_hilang[i]["status"] = "Sudah Ditemukan"
+
+                    # Poin bounty untuk si penemu
+                    penemu = cari_kontak(database_user, barang_temuan["id_pelapor"])
+                    penemu["poin"] = str(int(penemu["poin"]) + int(bounty))
+
+                    simpan_data("barangtemuan.csv", database_temuan)
+                    simpan_data("users.csv", database_user)
+
+                    print("\n=== KECOCOKAN TERKONFIRMASI ===")
+                    print("Silakan hubungi penemu untuk mengambil barang Anda:")
+                    print(f"- Nama  : {penemu['nama']}")
+                    print(f"- No HP : {penemu['no_hp']}")
+                    print(f"- Email : {penemu['email']}")
+                    print(f"Penemu mendapatkan +{bounty} poin bounty dari Anda.")
+
+            simpan_data("baranghilang.csv", database_hilang)
             return True
 
     print("Database barang hilang sudah penuh!")
@@ -306,12 +465,12 @@ def lapor_barang_hilang(database_hilang, id_pelapor, database_kategori):
 def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_user, database_kategori):
     # Melaporkan barang temuan, mencocokkan dengan barang hilang, dan memberi poin bounty
     # KAMUS LOKAL
-    # database_temuan, database_hilang, database_user : list of dict
+    # database_temuan, database_hilang, database_user, database_kategori : list of dict
     # indeks_kandidat : list of int
-    # indeks_user, jumlah_kandidat, pilihan, idx_hilang, bounty, poin_sekarang, i : int
-    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan, konfirmasi : str
-    # cocok_nama, cocok_kategori, cocok_warna : bool
-    # barang_target : dict
+    # indeks_user, jumlah_kandidat, idx_hilang, idx_baru, bounty, poin_sekarang, i : int
+    # id_pelapor, nama_barang, kategori, warna, lokasi, waktu, catatan : str
+    # konfirmasi, pilihan, nama_pemilik, hp_pemilik, email_pemilik : str
+    # item, barang_target, pemilik : dict
 
     print("\n================ LAPOR BARANG TEMUAN ================")
     id_pelapor = database_user[indeks_user]["user_id"]
@@ -338,20 +497,10 @@ def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_
     if catatan == "":
         catatan = "-"
 
-    # Mencocokkan dengan daftar barang hilang menggunakan array statis
-    indeks_kandidat = [-1] * len(database_hilang)
-    jumlah_kandidat = 0
-
-    for i in range(len(database_hilang)):
-        item = database_hilang[i]
-        if item["id_barang"] != "" and item["status"] == "Belum Ditemukan":
-            cocok_nama = (nama_barang.lower() in item["nama_barang"].lower()) or (item["nama_barang"].lower() in nama_barang.lower())
-            cocok_kategori = kategori.lower() == item["kategori"].lower()
-            cocok_warna = warna.lower() == item["warna"].lower()
-
-            if cocok_nama or (cocok_kategori and cocok_warna):
-                indeks_kandidat[jumlah_kandidat] = i
-                jumlah_kandidat += 1
+    # Mencocokkan dengan barang hilang milik orang lain
+    indeks_kandidat, jumlah_kandidat = cari_kandidat(
+        nama_barang, kategori, warna, database_hilang, "Belum Ditemukan", id_pelapor
+    )
 
     if jumlah_kandidat > 0:
         print("\n[!] Ditemukan laporan barang hilang yang mirip di sistem:")
@@ -377,15 +526,16 @@ def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_
             database_user[indeks_user]["poin"] = str(poin_sekarang + bounty)
 
             # Mencari kontak pemilik barang
-            nama_pemilik = "Tidak diketahui"
-            hp_pemilik = "-"
-            email_pemilik = "-"
-            for user in database_user:
-                if user["user_id"] == barang_target["id_pelapor"]:
-                    nama_pemilik = user["nama"]
-                    hp_pemilik = user["no_hp"]
-                    email_pemilik = user["email"]
-                    break
+            pemilik = cari_kontak(database_user, barang_target["id_pelapor"])
+            nama_pemilik = pemilik["nama"]
+            hp_pemilik = pemilik["no_hp"]
+            email_pemilik = pemilik["email"]
+
+            # Mencatat laporan temuan ini agar muncul di "Cek status barang" penemu
+            idx_baru = tambah_barang_temuan(database_temuan, id_pelapor, nama_barang, kategori,
+                                            warna, lokasi, waktu, catatan, "Sudah Diklaim")
+            if idx_baru != -1:
+                simpan_data("barangtemuan.csv", database_temuan)
 
             simpan_data("baranghilang.csv", database_hilang)
             simpan_data("users.csv", database_user)
@@ -397,54 +547,37 @@ def lapor_barang_temuan(database_temuan, database_hilang, database_user, indeks_
             print(f"- No HP : {hp_pemilik}")
             print(f"- Email : {email_pemilik}")
             print(f"Selamat! Anda mendapatkan +{bounty} poin bounty.")
+            if idx_baru != -1:
+                print(f"Laporan temuan anda tercatat dengan ID {database_temuan[idx_baru]['id_barang']}.")
+            else:
+                print("Catatan: database barang temuan penuh, laporan temuan anda tidak dicatat.")
             return True
 
-    # Jika tidak ada yang cocok, cari slot kosong di database_temuan
-    for i in range(len(database_temuan)):
-        if database_temuan[i]["id_barang"] == "":
-            database_temuan[i] = {
-                "nomor": str(i + 1),
-                "id_barang": "T" + str(i + 1).zfill(3),
-                "id_pelapor": id_pelapor,
-                "nama_barang": nama_barang,
-                "kategori": kategori,
-                "warna": warna,
-                "lokasi": lokasi,
-                "waktu": waktu,
-                "catatan": catatan,
-                "status": "Belum Diklaim"
-            }
+    # Jika tidak ada yang cocok (atau user menjawab n), simpan sebagai barang temuan baru
+    idx_baru = tambah_barang_temuan(database_temuan, id_pelapor, nama_barang, kategori,
+                                    warna, lokasi, waktu, catatan, "Belum Diklaim")
 
-            simpan_data("barangtemuan.csv", database_temuan)
-            print("\nLaporan barang temuan berhasil ditambahkan!")
-            print(f"ID Barang : {database_temuan[i]['id_barang']}")
-            print(f"Status    : {database_temuan[i]['status']}")
-            return True
+    if idx_baru == -1:
+        print("Database barang temuan sudah penuh!")
+        return False
 
-    print("Database barang temuan sudah penuh!")
-    return False
-
-def pilih_kategori(database_kategori):
-    # Memilih kategori barang berdasarkan kategori.csv
-
-    print("\nPilih kategori barang:")
-
-    for i in range(len(database_kategori)):
-        print(f"{i + 1}. {database_kategori[i]['kategori']}")
-
-    pilihan = input("Masukkan nomor kategori: ")
-
-    while not pilihan.isdigit() or int(pilihan) < 1 or int(pilihan) > len(database_kategori):
-        pilihan = input("Pilihan tidak valid! Masukkan nomor kategori: ")
-
-    kategori = database_kategori[int(pilihan) - 1]["kategori"]
-
-    return kategori
+    simpan_data("barangtemuan.csv", database_temuan)
+    print("\nLaporan barang temuan berhasil ditambahkan!")
+    print(f"ID Barang : {database_temuan[idx_baru]['id_barang']}")
+    print(f"Status    : {database_temuan[idx_baru]['status']}")
+    return True
 
 def cek_status(database_hilang, database_temuan, id_user):
+    # Menampilkan semua laporan hilang dan temuan milik user yang sedang login
+    # KAMUS LOKAL
+    # database_hilang, database_temuan : list of dict
+    # id_user : str
+    # i : int
+    # item : dict
+    # ada_hilang, ada_temuan : bool
     print("\n============= STATUS BARANG ANDA =============")
 
-    print("\n----Laporan Barang Hilang ----")
+    print("\n---- Laporan Barang Hilang ----")
     ada_hilang = False
     for i in range(len(database_hilang)):
         item = database_hilang[i]
@@ -455,9 +588,9 @@ def cek_status(database_hilang, database_temuan, id_user):
                   f"Bounty: {item['bounty']} poin | Status: {item['status']}")
 
     if not ada_hilang:
-        print("Belum ada laporang barang hilang")
-    
-    print("\n----Laporan Barang Temuan ----")
+        print("Belum ada laporan barang hilang")
+
+    print("\n---- Laporan Barang Temuan ----")
     ada_temuan = False
     for i in range(len(database_temuan)):
         item = database_temuan[i]
@@ -465,13 +598,17 @@ def cek_status(database_hilang, database_temuan, id_user):
             ada_temuan = True
             print(f"[{item['id_barang']}] {item['nama_barang']} ({item['kategori']}, {item['warna']}) | "
                   f"Lokasi: {item['lokasi']} | Waktu: {item['waktu']} | Status: {item['status']}")
-        
-    if not ada_temuan:
-        print("Belum ada laporang barang temuan")
-            
 
+    if not ada_temuan:
+        print("Belum ada laporan barang temuan")
 
 def cetak_leaderboard(database_user):
+    # Menampilkan peringkat user berdasarkan poin (selection sort, tertinggi ke terendah)
+    # KAMUS LOKAL
+    # database_user : list of dict
+    # indeks_aktif : list of int
+    # jumlah_user, i, j, indeks_max, poin_j, poin_max, temp : int
+    # user : dict
     print("\n============= LEADERBOARD BOUNTY =============")
     indeks_aktif = [-1 for i in range(len(database_user))]
     jumlah_user = 0
@@ -480,7 +617,7 @@ def cetak_leaderboard(database_user):
         if database_user[i]["user_id"] != "":
             indeks_aktif[jumlah_user] = i
             jumlah_user += 1
-        
+
     if jumlah_user == 0:
         print("Belum ada pengguna terdaftar.")
         return
@@ -503,8 +640,7 @@ def cetak_leaderboard(database_user):
     print("=" * 40)
     for i in range(jumlah_user):
         user = database_user[indeks_aktif[i]]
-        print(f"{i + 1} / {user["nama"]} / {user["poin"]}")
+        print(f"{i + 1} / {user['nama']} / {user['poin']}")
 
-
-
-main()
+if __name__ == "__main__":
+    main()
